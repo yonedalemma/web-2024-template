@@ -59,7 +59,7 @@ const BalanceWheel = () => {
     const centerX = 250;
     const centerY = 250;
     const radius = 200;
-    const textRadius = radius + 30;
+    const textRadius = radius + 20;
     const levelCount = 10;
 
     return (
@@ -88,8 +88,6 @@ const BalanceWheel = () => {
           
           const x1 = centerX + radius * Math.cos(startAngle);
           const y1 = centerY + radius * Math.sin(startAngle);
-          const textX = centerX + textRadius * Math.cos(midAngle);
-          const textY = centerY + textRadius * Math.sin(midAngle);
 
           const valueRadius = (segment.value / 10) * radius;
           const valueStartX = centerX + valueRadius * Math.cos(startAngle);
@@ -98,6 +96,19 @@ const BalanceWheel = () => {
           const valueEndY = centerY + valueRadius * Math.sin(endAngle);
 
           const largeArcFlag = endAngle - startAngle <= Math.PI ? "0" : "1";
+
+          // Определяем, находится ли текст в верхней половине круга
+          const isTopHalf = midAngle > Math.PI && midAngle < 2 * Math.PI;
+
+          // Создаем путь для текста
+          const textPathId = `textPath-${index}`;
+          const textPathD = isTopHalf
+            ? `M ${centerX + textRadius * Math.cos(startAngle)} ${centerY + textRadius * Math.sin(startAngle)} 
+               A ${textRadius} ${textRadius} 0 ${largeArcFlag} 1 
+               ${centerX + textRadius * Math.cos(endAngle)} ${centerY + textRadius * Math.sin(endAngle)}`
+            : `M ${centerX + textRadius * Math.cos(endAngle)} ${centerY + textRadius * Math.sin(endAngle)} 
+               A ${textRadius} ${textRadius} 0 ${largeArcFlag} 0 
+               ${centerX + textRadius * Math.cos(startAngle)} ${centerY + textRadius * Math.sin(startAngle)}`;
 
           return (
             <g key={index}>
@@ -112,16 +123,24 @@ const BalanceWheel = () => {
                 strokeWidth="3"
               />
 
+              {/* Путь для текста */}
+              <path
+                id={textPathId}
+                d={textPathD}
+                fill="none"
+              />
+
               {/* Название сегмента */}
-              <text
-                x={textX}
-                y={textY}
-                fontSize="12"
-                textAnchor="middle"
-                dominantBaseline="middle"
-                transform={`rotate(${(midAngle * 180) / Math.PI - 90}, ${textX}, ${textY})`}
-              >
-                {segment.name}
+              <text fontSize="12" fill="black">
+                <textPath 
+                  href={`#${textPathId}`} 
+                  startOffset="50%"
+                  textAnchor="middle"
+                >
+                  <tspan dy={isTopHalf ? "-5" : "15"}>
+                    {segment.name}
+                  </tspan>
+                </textPath>
               </text>
             </g>
           );
