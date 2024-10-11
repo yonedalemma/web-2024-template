@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Typography,
   Slider,
@@ -13,17 +13,20 @@ import { styled } from "@mui/system";
 interface Segment {
   name: string;
   value: number;
+  color: string;
 }
 
 const DEFAULT_SEGMENTS: Segment[] = [
-  { name: "Здоровье", value: 5 },
-  { name: "Финансы", value: 5 },
-  { name: "Отношения", value: 5 },
-  { name: "Работа", value: 5 },
-  { name: "Творчество", value: 5 },
-  { name: "Личностное развитие", value: 5 },
-  { name: "Отдых", value: 5 },
+  { name: "Здоровье", value: 5, color: "#FF6B6B" },
+  { name: "Финансы", value: 5, color: "#4ECDC4" },
+  { name: "Отношения", value: 5, color: "#45B7D1" },
+  { name: "Работа", value: 5, color: "#FFA07A" },
+  { name: "Творчество", value: 5, color: "#98D8C8" },
+  { name: "Личностное развитие", value: 5, color: "#F7DC6F" },
+  { name: "Отдых", value: 5, color: "#BB8FCE" },
 ];
+
+const STORAGE_KEY = 'balanceWheelSegments';
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(2),
@@ -31,7 +34,14 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 }));
 
 const BalanceWheel = () => {
-  const [segments, setSegments] = useState<Segment[]>(DEFAULT_SEGMENTS);
+  const [segments, setSegments] = useState<Segment[]>(() => {
+    const savedSegments = localStorage.getItem(STORAGE_KEY);
+    return savedSegments ? JSON.parse(savedSegments) : DEFAULT_SEGMENTS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(segments));
+  }, [segments]);
 
   const handleNameChange = (index: number, newName: string) => {
     const newSegments = [...segments];
@@ -46,7 +56,8 @@ const BalanceWheel = () => {
   };
 
   const addSegment = () => {
-    setSegments([...segments, { name: "Новая область", value: 5 }]);
+    const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+    setSegments([...segments, { name: "Новая область", value: 5, color: randomColor }]);
   };
 
   const removeSegment = (index: number) => {
@@ -86,14 +97,11 @@ const BalanceWheel = () => {
           const endAngle = ((index + 1) / totalSegments) * 2 * Math.PI;
           const midAngle = (startAngle + endAngle) / 2;
           
+          const valueRadius = (segment.value / 10) * radius;
           const x1 = centerX + radius * Math.cos(startAngle);
           const y1 = centerY + radius * Math.sin(startAngle);
-
-          const valueRadius = (segment.value / 10) * radius;
-          const valueStartX = centerX + valueRadius * Math.cos(startAngle);
-          const valueStartY = centerY + valueRadius * Math.sin(startAngle);
-          const valueEndX = centerX + valueRadius * Math.cos(endAngle);
-          const valueEndY = centerY + valueRadius * Math.sin(endAngle);
+          const x2 = centerX + radius * Math.cos(endAngle);
+          const y2 = centerY + radius * Math.sin(endAngle);
 
           const largeArcFlag = endAngle - startAngle <= Math.PI ? "0" : "1";
 
@@ -112,16 +120,19 @@ const BalanceWheel = () => {
 
           return (
             <g key={index}>
-              {/* Линия сегмента */}
-              <line x1={centerX} y1={centerY} x2={x1} y2={y1} stroke="black" />
-
-              {/* Дуга значения */}
+              {/* Закрашенный сегмент */}
               <path
-                d={`M ${valueStartX} ${valueStartY} A ${valueRadius} ${valueRadius} 0 ${largeArcFlag} 1 ${valueEndX} ${valueEndY}`}
-                fill="none"
-                stroke="red"
-                strokeWidth="3"
+                d={`M ${centerX} ${centerY} 
+                   L ${centerX + valueRadius * Math.cos(startAngle)} ${centerY + valueRadius * Math.sin(startAngle)} 
+                   A ${valueRadius} ${valueRadius} 0 ${largeArcFlag} 1 
+                   ${centerX + valueRadius * Math.cos(endAngle)} ${centerY + valueRadius * Math.sin(endAngle)} 
+                   Z`}
+                fill={segment.color}
+                opacity="0.7"
               />
+
+              {/* Линия сегмента (изменена на более тонкую) */}
+              <line x1={centerX} y1={centerY} x2={x1} y2={y1} stroke="#808080" strokeWidth="1" />
 
               {/* Путь для текста */}
               <path
