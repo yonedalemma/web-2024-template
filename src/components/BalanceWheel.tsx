@@ -14,16 +14,17 @@ interface Segment {
   name: string;
   value: number;
   color: string;
+  comment: string; // Добавляем поле для комментария
 }
 
 const DEFAULT_SEGMENTS: Segment[] = [
-  { name: "Здоровье", value: 5, color: "#FF6B6B" },
-  { name: "Финансы", value: 5, color: "#4ECDC4" },
-  { name: "Отношения", value: 5, color: "#45B7D1" },
-  { name: "Работа", value: 5, color: "#FFA07A" },
-  { name: "Творчество", value: 5, color: "#98D8C8" },
-  { name: "Личностное развитие", value: 5, color: "#F7DC6F" },
-  { name: "Отдых", value: 5, color: "#BB8FCE" },
+  { name: "Здоровье", value: 5, color: "#FF6B6B", comment: "" },
+  { name: "Финансы", value: 5, color: "#4ECDC4", comment: "" },
+  { name: "Отношения", value: 5, color: "#45B7D1", comment: "" },
+  { name: "Работа", value: 5, color: "#FFA07A", comment: "" },
+  { name: "Творчество", value: 5, color: "#98D8C8", comment: "" },
+  { name: "Личностное развитие", value: 5, color: "#F7DC6F", comment: "" },
+  { name: "Отдых", value: 5, color: "#BB8FCE", comment: "" },
 ];
 
 const STORAGE_KEY = 'balanceWheelSegments';
@@ -55,9 +56,15 @@ const BalanceWheel = () => {
     setSegments(newSegments);
   };
 
+  const handleCommentChange = (index: number, newComment: string) => {
+    const newSegments = [...segments];
+    newSegments[index].comment = newComment;
+    setSegments(newSegments);
+  };
+
   const addSegment = () => {
     const randomColor = `#${Math.floor(Math.random()*16777215).toString(16)}`;
-    setSegments([...segments, { name: "Новая область", value: 5, color: randomColor }]);
+    setSegments([...segments, { name: "Новая область", value: 5, color: randomColor, comment: "" }]);
   };
 
   const removeSegment = (index: number) => {
@@ -186,6 +193,15 @@ const BalanceWheel = () => {
                 step={1}
                 marks
                 valueLabelDisplay="auto"
+              />
+              <TextField
+                fullWidth
+                label="Комментарий"
+                value={segment.comment}
+                onChange={(e) => handleCommentChange(index, e.target.value)}
+                margin="normal"
+                multiline
+                rows={2}
               />
               <Button onClick={() => removeSegment(index)} color="secondary">
                 Удалить
